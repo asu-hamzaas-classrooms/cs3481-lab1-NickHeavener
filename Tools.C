@@ -255,13 +255,13 @@ uint64_t Tools::clearBits(uint64_t source, int32_t low, int32_t high)
 uint64_t Tools::copyBits(uint64_t source, uint64_t dest, int32_t srclow, int32_t dstlow, int32_t length)
 {
 	if((srclow > 63 || srclow < 0) || (dstlow > 63 || dstlow < 0) 
-	|| (srclow + length > 63 || dstlow + length > 63))
+	|| ((srclow + length-1) > 63 || (dstlow + length-1 > 63)) || length < 0)
 	{
 		return dest;
 	}
    	
-	uint64_t copySrc = getBits(source, srclow, (srclow + length));
-	uint64_t copyDest = clearBits(dest, dstlow, (dstlow + length));
+	uint64_t copySrc = getBits(source, srclow, (srclow + (length - 1)));
+	uint64_t copyDest = clearBits(dest, dstlow, (dstlow + (length - 1)));
 	copySrc = copySrc << dstlow;
 	copyDest = copyDest + copySrc;
 
@@ -291,9 +291,9 @@ uint64_t Tools::copyBits(uint64_t source, uint64_t dest, int32_t srclow, int32_t
  */
 uint64_t Tools::setByte(uint64_t source, int32_t byteNum)
 {
-
-	int lowBit = (0 * byteNum);
-	int highBit = (lowBit + 8);
+	
+	int lowBit = (byteNum * 8);
+	int highBit = (lowBit + 7);
 
 	uint64_t ans = setBits(source, lowBit, highBit);
 
