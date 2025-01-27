@@ -48,7 +48,6 @@ uint64_t Tools::buildLong(uint8_t bytes[LONGSIZE])
 	for(int i = 7; i >= 0 ; i--){
 		finalLong = finalLong << shift;
 		finalLong = finalLong + bytes[i];
-		
 	}
 
   	return finalLong;
@@ -80,14 +79,11 @@ uint64_t Tools::getByte(uint64_t source, int32_t byteNum)
 	}	
        	
 	uint64_t desigByte;
-
-	uint64_t cleaner = 0x00000000000000ff;
-
+	uint64_t cleaner = 0xff;
 	int shifter = byteNum * 8;
 
 	desigByte = source >> shifter;
-
-	desigByte = desigByte &  cleaner;
+	desigByte = desigByte & cleaner;
 
 	return desigByte;
 	
@@ -120,7 +116,7 @@ uint64_t Tools::getByte(uint64_t source, int32_t byteNum)
  */
 uint64_t Tools::getBits(uint64_t source, int32_t low, int32_t high)
 {
- 	if(high > 63 || low < 0)
+ 	if(high > 63 || low < 0 || high < 0 || low > 63)
  	{
 		return 0;
  	}
@@ -128,6 +124,7 @@ uint64_t Tools::getBits(uint64_t source, int32_t low, int32_t high)
 	int shifterLow = low;
     int shifterHigh = 63 - high;	
 	uint64_t subset = source <<  shifterHigh;
+
 	subset = subset >> shifterHigh;
 	subset = subset >> shifterLow;
 
@@ -160,7 +157,7 @@ uint64_t Tools::getBits(uint64_t source, int32_t low, int32_t high)
  */
 uint64_t Tools::setBits(uint64_t source, int32_t low, int32_t high)
 {
-	if( (low < 0 || low > 63) || (high > 63 || high < 0))
+	if(low < 0 || low > 63 || high > 63 || high < 0)
  	{
 		return source;
  	}
@@ -168,10 +165,10 @@ uint64_t Tools::setBits(uint64_t source, int32_t low, int32_t high)
 	int floor = 0;
 	int ceil = 63;
 	uint64_t replaceMask = 0xffffffffffffffff;
-	
 	uint64_t replace = getBits(replaceMask, low, high);
 	uint64_t leftMask = getBits(source, high , ceil);
 	uint64_t rightMask = getBits(source, floor, low);
+	
 	leftMask = leftMask << high;
 	uint64_t ans = leftMask;
 	replace = replace << low;
@@ -210,12 +207,13 @@ uint64_t Tools::clearBits(uint64_t source, int32_t low, int32_t high)
 	int floor = 0;
 	int ceil = 63;
 	uint64_t replaceMask = 0xffffffffffffffff;
-	
 	uint64_t invertedAns = setBits(source, low, high);
 	invertedAns = ~(invertedAns);
+
 	uint64_t replace = getBits(replaceMask, low, high);
 	uint64_t leftMask = getBits(invertedAns, high, ceil);
 	uint64_t ans = getBits(invertedAns, floor, low);
+
 	leftMask = leftMask << high;
 	replace = replace << low;
 	ans = ans + replace;
@@ -255,7 +253,7 @@ uint64_t Tools::clearBits(uint64_t source, int32_t low, int32_t high)
 uint64_t Tools::copyBits(uint64_t source, uint64_t dest, int32_t srclow, int32_t dstlow, int32_t length)
 {
 	if((srclow > 63 || srclow < 0) || (dstlow > 63 || dstlow < 0) 
-	|| ((srclow + length-1) > 63 || (dstlow + length-1 > 63)) || length < 0)
+	|| ((srclow + length - 1) > 63 || (dstlow + length - 1 > 63)) || length < 0)
 	{
 		return dest;
 	}
@@ -291,7 +289,6 @@ uint64_t Tools::copyBits(uint64_t source, uint64_t dest, int32_t srclow, int32_t
  */
 uint64_t Tools::setByte(uint64_t source, int32_t byteNum)
 {
-	
 	int lowBit = (byteNum * 8);
 	int highBit = (lowBit + 7);
 
@@ -351,7 +348,8 @@ bool Tools::addOverflow(uint64_t op1, uint64_t op2)
 	//      operand and the result.  For example, if you add two positive numbers, 
 	//      the result should be positive, otherwise an overflow occurred.
 	uint64_t sum = op1 + op2;
-	if ((!sign(op1) && !sign(op2) && sign(sum)) || (sign(op1) && sign(op2) && !sign(sum)))
+	if ((!sign(op1) && !sign(op2) && sign(sum)) 
+	|| (sign(op1) && sign(op2) && !sign(sum)))
 	{
   		return true;
 	}
@@ -385,7 +383,8 @@ bool Tools::subOverflow(uint64_t op1, uint64_t op2)
 	//op1 in order to an add, you may get an overflow. 
 	//NOTE: the subtraction is op2 - op1 (not op1 - op2).
 	uint64_t ans = op2 - op1;
-	if ((sign(op2) && sign(op1) && !sign(ans)) || (sign(op2) && !sign(op1) && sign(ans)) 
+	if ((sign(op2) && sign(op1) && !sign(ans)) 
+	|| (sign(op2) && !sign(op1) && sign(ans)) 
 	|| (!sign(op2) && sign(op1) && !sign(ans)))
 	{
 		return false;
